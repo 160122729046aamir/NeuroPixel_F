@@ -1,4 +1,3 @@
-import logo from './logo.svg'
 import logo_icon from './logo_icon.svg'
 import facebook_icon from './facebook_icon.svg'
 import instagram_icon from './instagram_icon.svg'
@@ -18,7 +17,7 @@ import cross_icon from './cross_icon.svg'
 import star_group from './star_group.png'
 import credit_star from './credit_star.svg'
 import profile_icon from './profile_icon.png'
-
+import logo from './logo.png'
 export const assets = {
     logo,
     logo_icon,
