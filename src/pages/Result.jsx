@@ -1,0 +1,74 @@
+import React, { useState } from 'react'
+import { assets } from '../assets/assets'
+import { motion } from 'motion/react';
+import axios from 'axios';
+import { useContext } from 'react';
+import { AppContext } from '../context/AppContext.jsx';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+
+const Result = () => {
+  const navigate = useNavigate();
+  const [image, setImage] = useState(assets.sample_img_1);
+  const [isImageLoaded, setIsImageLoaded] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState('');
+  const {user,token,setShowLogin,creditBalance,setCreditBalance,backendUrl} = useContext(AppContext);
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    try {
+      if (user && token ){
+        if (creditBalance<=0){
+          toast.info("Please buy credits to generate Image!");
+          navigate('/buy');
+        }else{
+      setIsImageLoaded(false);
+      setLoading(true);
+      const {data} = await axios.post(backendUrl+'/api/image/generate-image',{prompt:input},{headers:{
+        "token" : token
+      }});
+      setImage(data.image);
+      setCreditBalance(data.creditBalance);
+      setInput('');
+        }
+    }
+    else{
+        toast.info("Please login to generate image!");
+        setShowLogin(true);
+      }
+    }catch(error){
+      console.log(error.message);
+      toast.error(error.message)
+    }finally{
+      setIsImageLoaded(true);
+      setLoading(false);
+    }
+  }
+  return (
+    <motion.form 
+    initial={{opacity:0.2,y:100}}
+    transition={{duration:1}}
+    whileInView={{opacity:1,y:0}}
+    viewport={{once:true}}
+    onSubmit={onSubmitHandler} className='flex flex-col min-h-[90vh] justify-center items-center'>
+      <div>
+      <div className="relative">
+        <img src={image} alt="" className="max-w-sm rounded" />
+        <span className={`absolute bottom-0 left-0 h-1 bg-blue-500 ${loading ? 'w-full transition-all duration-[10s]' : 'w-0'}`}/>
+      </div>
+      <p className={!loading ? 'hidden' : ''}>Loading......</p>
+    </div>
+    {!isImageLoaded && <div className='flex w-full max-w-xl bg-neutral-500 text-white text-sm p-0.5 mt-10 rounded-full'>
+      <input onChange={e => setInput(e.target.value)} value={input} type="text" placeholder='Describe what you want to generate' className='flex-1 bg-transparent outline-none ml-8 max-sm:w-20 placeholder-color'/>
+      <button type='submit' className='bg-zinc-900 px-10 sm:px-16 py-3 rounded-full'>Generate</button>
+    </div>}
+    
+    {isImageLoaded && <div className='flex gap-2 flex-wrap justify-center text-white text-sm p-0.5 mt-10 rounded-full'>
+      <p onClick={()=>(setIsImageLoaded(false))} className='bg-transparent border border-zinc-900 text-black px-8 py-3 rounded-full cursor-pointer'>Generate Another</p>
+      <a href={image} download className='bg-zinc-900 px-10 py-3 rounded-full cursor-pointer'>Download</a>
+    </div>}
+    </motion.form>
+  )
+}
+
+export default Result
